@@ -19,3 +19,12 @@ sudo unshare --pid --fork --mount --uts --net --ipc \
 ## Lab: limits
 sudo systemd-run --unit=cpu-test -p CPUQuota=20% sh -c 'yes > /dev/null'
 sudo systemd-run --unit=mem-test -p MemoryMax=50M -p MemorySwapMax=0 python3 -c "..."
+
+## Permissions & strace
+- Directory: r = list names, x = traverse/enter. 644 on a dir → ls ok, cd denied.
+- setuid = runs as file owner (passwd). On bash → root shell for anyone (bash -p). Audit: find / -perm -4000.
+- Sticky bit on /tmp: only the owner can delete his files.
+- Containers: run as non-root (USER 1000 / runAsUser).
+- strace = syscalls. -c summary, -f follow children, -e trace=file, -p attach.
+- ENOENT = no such file, EACCES = permission denied.
+- Debug "Permission denied": strace | grep EACCES → namei -l <path> → id.
