@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ministore</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #1d1d1f; }
+    h1 { margin-bottom: .2rem; } .sub { color: #666; margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0 2rem; }
+    th, td { text-align: left; padding: .45rem .5rem; border-bottom: 1px solid #e5e5e5; }
+    button { cursor: pointer; padding: .3rem .7rem; }
+    .err { color: #b00020; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>ministore</h1>
+  <p class="sub">gateway (Node) → catalog (Python + PostgreSQL) · orders (Go + Redis)</p>
+
+  <h2>Products</h2>
+  <table><thead><tr><th>#</th><th>Name</th><th>Price</th><th>Stock</th><th></th></tr></thead><tbody id="products"></tbody></table>
+
+  <h2>Last orders</h2>
+  <table><thead><tr><th>#</th><th>Product</th><th>Qty</th><th>Total</th><th>Created</th></tr></thead><tbody id="orders"></tbody></table>
+
+  <p id="error" class="err"></p>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const showError = (e) => { $("error").textContent = String(e); };
+
+async function getJSON(url, opts) {
+  const r = await fetch(url, opts);
+  const body = await r.json();
+  if (!r.ok) throw new Error(`${url} → ${r.status} ${JSON.stringify(body)}`);
+  return body;
+}
+
+async function loadProducts() {
+  const products = await getJSON("/api/products");
+  $("products").innerHTML = "";
+  for (const p of products) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${p.id}</td><td></td><td>${p.price.toFixed(2)} €</td><td>${p.stock}</td><td><button>Order 1</button></td>`;
+    tr.children[1].textContent = p.name;
+    tr.querySelector("button").onclick = () => order(p.id);
+    $("products").appendChild(tr);
+  }
+}
+
+async function loadOrders() {
+  const orders = await getJSON("/api/orders");
+  $("orders").innerHTML = "";
+  for (const o of orders) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${o.id}</td><td></td><td>${o.quantity}</td><td>${o.total.toFixed(2)} €</td><td>${new Date(o.created_at).toLocaleTimeString()}</td>`;
+    tr.children[1].textContent = o.product;
+    $("orders").appendChild(tr);
+  }
+}
+
+async function order(productId) {
+  try {
+    await getJSON("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product_id: productId, quantity: 1 }) });
+    $("error").textContent = "";
+    await loadOrders();
+  } catch (e) { showError(e); }
+}
+
+loadProducts().catch(showError);
+loadOrders().catch(showError);
+</script>
+</body>
+</html>

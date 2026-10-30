@@ -1,0 +1,17 @@
+{
+  "name": "ministore-gateway",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ministore front door: web page + API forwarding to catalog and orders",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "4.21.2",
+    "prom-client": "15.1.3"
+  }
+}
