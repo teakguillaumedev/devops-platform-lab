@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tshoot-k04
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: tshoot-k04
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: shop-web}
+  template:
+    metadata:
+      labels: {app: shop-web}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: tshoot-k04
+spec:
+  selector: {app: shopweb}
+  ports:
+    - port: 80
+      targetPort: 80
