@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tshoot-k08
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache
+  namespace: tshoot-k08
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: cache}
+  template:
+    metadata:
+      labels: {app: cache}
+    spec:
+      containers:
+        - name: cache
+          image: python:3.12-alpine
+          command:
+            - python
+            - -c
+            - |
+              import time
+              data = b"x" * (150 * 1024 * 1024)
+              print("cache warmed: 150 MB loaded", flush=True)
+              while True:
+                  time.sleep(3600)
+          resources:
+            requests: {memory: 32Mi}
+            limits: {memory: 64Mi}
